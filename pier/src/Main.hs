@@ -7,7 +7,6 @@ import Data.IORef
 import Data.List.Split (splitOn)
 import Data.Maybe (fromMaybe)
 import Data.Monoid (Last(..))
-import Data.Semigroup (Semigroup, (<>))
 import Development.Shake hiding (command)
 import Development.Shake.FilePath ((</>), takeDirectory, splitFileName)
 import Distribution.Package

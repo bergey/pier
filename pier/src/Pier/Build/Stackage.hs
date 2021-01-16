@@ -18,8 +18,7 @@ module Pier.Build.Stackage
     ) where
 
 import Control.Exception (throw)
-import Data.Binary.Orphans ()
-import Data.Monoid ((<>))
+import Data.Binary.Instances.UnorderedContainers ()
 import Data.Text (Text)
 import Data.Yaml
 import Development.Shake

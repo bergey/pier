@@ -33,9 +33,9 @@ addPersistent
     :: (RuleResult q ~ a, ShakeValue q, ShakeValue a)
     => (q -> Action a)
     -> Rules ()
-addPersistent act = addBuiltinRule noLint $ \(Persistent q) old depsChanged
+addPersistent act = addBuiltinRule noLint noIdentity $ \(Persistent q) old depsChanged
                     -> case old of
-    Just old' | not depsChanged
+    Just old' | depsChanged /= RunDependenciesChanged
               , Just val <- decode' old'
                     -> return $ RunResult ChangedNothing old' val
     _ -> do
@@ -85,7 +85,7 @@ type instance RuleResult Cleaner = ()
 cleaning :: Bool -> Rules ()
 cleaning shouldClean = do
     action rerunIfCleaned
-    addBuiltinRule noLint $ \Cleaner _ _ ->
+    addBuiltinRule noLint noIdentity $ \Cleaner _ _ ->
         let change = if shouldClean
                         then ChangedRecomputeDiff
                         else ChangedNothing

@@ -56,7 +56,7 @@ getConfiguredPackage p = do
         return $ ConfiguredPackage desc dir' datas extras
 
 targetDepNames :: BuildInfo -> [PackageName]
-targetDepNames bi = [n | Dependency n _ <- targetBuildDepends bi]
+targetDepNames bi = [n | Dependency n _ _ <- targetBuildDepends bi]
 
 -- | In older versions of Cabal, executables could use packages that were only
 -- explicitly depended on in the library or in other executables.  Some existing

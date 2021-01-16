@@ -113,8 +113,8 @@ getBuiltinLib (BuiltinLibraryR p) = do
                 $ ghcPkgProg ghc
                     ["describe" , display p]
     info <- case IP.parseInstalledPackageInfo result of
-        IP.ParseFailed err -> error (show err)
-        IP.ParseOk _ info -> return info
+        Left err -> error (show err)
+        Right (_, info) -> return info
     deps <- mapM askBuiltinLibrary $ IP.depends info
     let paths f = Set.fromList . map (parseGlobalPackagePath ghc)
                         . f $ info

@@ -13,6 +13,7 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified Distribution.Text as Cabal
+import qualified Distribution.Parsec as Cabal
 
 instance (Hashable k, Hashable v) => Hashable (Map.Map k v) where
     hashWithSalt k = hashWithSalt k . Map.toList
@@ -49,11 +50,11 @@ instance FromJSONKey FlagName where
 instance FromJSON PackageIdentifier where
     parseJSON = withText "PackageIdentifier" simpleParser
 
-simpleParser :: Cabal.Text a => T.Text -> Parser a
+simpleParser :: Cabal.Parsec a => T.Text -> Parser a
 simpleParser t = case Cabal.simpleParse (T.unpack t) of
                         Just v -> pure v
                         Nothing -> fail $ "Unable to parse: "
                                             ++ show t
 
-cabalKeyTextParser :: Cabal.Text a => FromJSONKeyFunction a
+cabalKeyTextParser :: Cabal.Parsec a => FromJSONKeyFunction a
 cabalKeyTextParser = FromJSONKeyTextParser simpleParser
