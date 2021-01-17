@@ -23,18 +23,18 @@ import Pier.Core.Internal.Directory
 import Pier.Core.Internal.Store
 import Pier.Core.Persistent
 
--- | Downloads @downloadUrlPrefix / downloadName@ to
+-- | Downloads @downloadUrl@ to
 -- @downloadFilePrefix / downloadName@.
 -- Everything is stored in `~/.pier/downloads`.
 data Download = Download
-    { downloadUrlPrefix :: String
+    { downloadUrl :: String
     , downloadName :: FilePath
     }
     deriving (Typeable, Eq, Generic)
 
 instance Show Download where
     show d = "Download " ++ show (downloadName d)
-            ++ " from " ++ show (downloadUrlPrefix d)
+            ++ " from " ++ show (downloadUrl d)
 
 instance Hashable Download
 instance Binary Download
@@ -58,7 +58,7 @@ downloadRules sharedCache = do
         createParentIfMissing out
         putNormal msg
         liftIO $ do
-            let url = downloadUrlPrefix d ++ "/" ++ downloadName d
+            let url = downloadUrl d
             req <- parseRequest url
             resp <- httpLbs req manager
             unless (statusIsSuccessful . responseStatus $ resp)

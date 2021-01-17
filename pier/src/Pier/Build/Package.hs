@@ -28,7 +28,7 @@ downloadCabalPackage pkg = do
     let n = display pkg
     askDownload Download
         { downloadName = n <.> "tar.gz"
-        , downloadUrlPrefix = "https://hackage.haskell.org/package/" ++ n
+        , downloadUrl = "https://hackage.haskell.org/package/" ++ n
         }
 
 getPackageSourceDir :: PackageIdentifier -> Action Artifact

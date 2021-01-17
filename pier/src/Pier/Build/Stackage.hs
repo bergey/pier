@@ -1,3 +1,5 @@
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Pier.Build.Stackage
@@ -77,23 +79,23 @@ instance FromJSON PlanPackage where
 
 buildPlanRules :: Rules ()
 buildPlanRules = addPersistent $ \(ReadPlan planName) -> do
-        f <- askDownload Download
-                { downloadName = renderPlanName planName <.> "yaml"
-                , downloadUrlPrefix = planUrlPrefix planName
-                }
-        cs <- readArtifactB f
-        case decodeEither' cs of
-            Left err -> throw err
-            Right x -> return x
+    f <- askDownload (planDownload planName)
+    cs <- readArtifactB f
+    case decodeEither' cs of
+        Left err -> throw err
+        Right x -> return x
 
-planUrlPrefix :: PlanName -> String
-planUrlPrefix (PlanName name)
-    | "lts-" `List.isPrefixOf` name = ltsBuildPlansUrl
-    | "nightly-" `List.isPrefixOf` name = nightlyBuildPlansUrl
-    | otherwise = error $ "Unrecognized plan name " ++ show name
+planDownload :: PlanName -> Download
+planDownload (PlanName plan) = Download
+  { downloadUrl = prefix </> map slashes plan <.> "yaml"
+  , downloadName = plan
+  }
   where
-    ltsBuildPlansUrl = "https://raw.githubusercontent.com/fpco/lts-haskell/master/"
-    nightlyBuildPlansUrl = "https://raw.githubusercontent.com/fpco/stackage-nightly/master/"
+    slashes = \case
+      '-' -> '/'
+      '.' -> '/'
+      c -> c
+    prefix = "https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master"
 
 newtype ReadPlan = ReadPlan PlanName
     deriving (Typeable,Eq,Hashable,Binary,NFData,Generic)
@@ -247,13 +249,14 @@ setupUrl = "https://raw.githubusercontent.com/fpco/stackage-content/master/stack
 downloadAndInstallGHC
     :: Version -> Action InstalledGhc
 downloadAndInstallGHC version = do
+    let basename = "stack-setup-2.yaml"
     setupYaml <- askDownload Download
-                    { downloadName = "stack-setup-2.yaml"
-                    , downloadUrlPrefix = setupUrl
+                    { downloadName = basename
+                    , downloadUrl = setupUrl </> basename
                     }
     -- TODO: don't re-parse the yaml for every GHC version
     cs <- readArtifactB setupYaml
-    download <- case decodeEither' cs of
+    DownloadInfo{downloadUrl} <- case decodeEither' cs of
         Left err -> throw err
         Right x
             | Just download <- HM.lookup version (ghcVersions x)
@@ -262,10 +265,10 @@ downloadAndInstallGHC version = do
     -- TODO: reenable this once we've fixed the issue with nondetermistic
     -- temp file locations.
     -- rerunIfCleaned
-    let (url, f) = splitFileName $ downloadUrl download
+    let (url, f) = splitFileName downloadUrl
     tar <- askDownload Download
             { downloadName = f
-            , downloadUrlPrefix = url
+            , downloadUrl = url </> f
             }
     -- TODO: check file size and sha1
     -- GHC's configure step requires an absolute prefix.
